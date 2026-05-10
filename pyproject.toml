@@ -1,0 +1,7 @@
+[project]
+name = "audio-diffusion-finetuning"
+version = "0.1.0"
+description = "Finetuning a diffusion based audio model"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
