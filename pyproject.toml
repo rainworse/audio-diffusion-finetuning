@@ -5,6 +5,9 @@ description = "Finetuning a diffusion based audio model"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "einops>=0.8.2",
+    "notebook>=7.5.6",
     "torch>=2.11.0",
     "transformers>=5.8.0",
+    "vector-quantize-pytorch>=1.29.0",
 ]
