@@ -3,11 +3,12 @@ name = "audio-diffusion-finetuning"
 version = "0.1.0"
 description = "Finetuning a diffusion based audio model"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.11,<3.12"
 dependencies = [
-    "einops>=0.8.2",
+    "einops>=0.8.1",
     "notebook>=7.5.6",
     "torch>=2.11.0",
-    "transformers==4.57.6",
-    "vector-quantize-pytorch>=1.29.0",
+    "stable-audio-tools>=0.0.19",
+    "torchaudio",
+    "transformers>=4.51.0,<4.58.0",
 ]
