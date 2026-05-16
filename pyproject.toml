@@ -11,4 +11,5 @@ dependencies = [
     "stable-audio-tools>=0.0.19",
     "torchaudio",
     "transformers>=4.51.0,<4.58.0",
+    "torchcodec>=0.12.0",
 ]
