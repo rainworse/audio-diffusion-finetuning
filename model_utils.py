@@ -43,16 +43,18 @@ def get_reference_audio_latent(encoder, device, model_dtype, silence_latent, use
     print("No reference audio")
     return silence_latent.permute(0, 2, 1), torch.LongTensor([0]).to(device)
 
-def load_finetuning_audio_latents(encoder, device, model_dtype, lim=-1):
-    path = "inputs/lora"
-    wavs = []
+def get_files_in_path_as_array(path):
+    files = sorted([f for f in Path(path).iterdir() if f.is_file() and f.suffix == ".wav"])
+    return files
 
-    for file in Path(path).iterdir():
-        if file.is_file() and file.suffix == ".wav":
-            audio_latent = load_audio(file, device, model_dtype)
-            wavs.append(audio_latent)
-    if lim != -1:
-        wavs = wavs[:lim]
+def load_finetuning_audio_latents(encoder, files, device, model_dtype, start=0, end=-1):
+    wavs = []
+    files = files[start:end if end != -1 else len(files)]
+
+    for file in files:
+        audio_latent = load_audio(file, device, model_dtype)
+        wavs.append(audio_latent)
+
     wavs = torch.stack(wavs).to(device).to(model_dtype)
     print(wavs.shape)
     latents = encoder.encode(wavs).to(device).to(model_dtype)
