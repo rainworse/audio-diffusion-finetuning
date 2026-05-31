@@ -82,5 +82,6 @@ def save_audio(audio_data, filename, sample_rate=48000):
 def decode_latent_and_save_audio(latents, decoder, filename, sample_rate=48000):
     output = decoder.decode(latents)
     print(output.shape)
-    audio_np = save_audio(output, filename, sample_rate)
-    print(audio_np.shape)
+    for i in range(output.shape[0]):
+        audio_np = save_audio(output[i:i+1,:,:], filename + str(i) + ".wav", sample_rate)
+        print(audio_np.shape)
