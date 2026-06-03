@@ -29,7 +29,6 @@ def load_audio(file_path, device, model_dtype):
         wav = torchaudio.functional.resample(wav, orig_freq=sr, new_freq=48000)
 
     wav = wav[..., :MAX_SAMPLES]
-    print(wav.shape)
     return wav
 
 def get_reference_audio_latent(encoder, device, model_dtype, silence_latent, use_reference=True):
@@ -56,7 +55,6 @@ def load_finetuning_audio_latents(encoder, files, device, model_dtype, start=0, 
         wavs.append(audio_latent)
 
     wavs = torch.stack(wavs).to(device).to(model_dtype)
-    print(wavs.shape)
     latents = encoder.encode(wavs).to(device).to(model_dtype)
     return latents
 
@@ -77,6 +75,7 @@ def save_audio(audio_data, filename, sample_rate=48000):
     output_path = Path("./outputs/" + filename)
     audio_np = audio_data.to(torch.float32).cpu().detach().numpy().T.reshape((-1, 2))
     sf.write(output_path, audio_np, sample_rate)
+    print("Audio saved to " + str(output_path))
     return audio_np
 
 def decode_latent_and_save_audio(latents, decoder, filename, sample_rate=48000):
