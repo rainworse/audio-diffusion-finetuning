@@ -1,3 +1,5 @@
+import gc
+
 import torch
 from transformers import AutoModel
 import soundfile as sf
@@ -21,20 +23,19 @@ def load_prompt_embedding_model_and_tokenizer(llm_repo_id, model_dtype, device):
 def load_audio(file_path, device, model_dtype):
     import torchaudio
 
-    MAX_SAMPLES = 48000 * 60
     audio, sr = sf.read(file_path, always_2d=True)
     wav = torch.from_numpy(audio.T).float().to(device).to(model_dtype)
 
     if sr != 48000:
         wav = torchaudio.functional.resample(wav, orig_freq=sr, new_freq=48000)
 
-    wav = wav[..., :MAX_SAMPLES]
     return wav
 
-def get_reference_audio_latent(encoder, device, model_dtype, silence_latent, use_reference=True):
-    ref_path = "inputs/reference1.wav"
+def get_reference_audio_latent(ref_path, encoder, device, model_dtype, silence_latent, use_reference=True):
     if use_reference and Path(ref_path).exists():
+        MAX_SAMPLES = 48000 * 60
         wav = load_audio(ref_path, device, model_dtype)
+        wav = wav[..., :MAX_SAMPLES]
         reference_latent = encoder.encode(wav).to(device).to(model_dtype)
         reference_latent = reference_latent.permute(0, 2, 1)
         mask = torch.LongTensor([0]).to(device)
@@ -46,17 +47,23 @@ def get_files_in_path_as_array(path):
     files = sorted([f for f in Path(path).iterdir() if f.is_file() and f.suffix == ".wav"])
     return files
 
-def load_finetuning_audio_latents(encoder, files, device, model_dtype, start=0, end=-1):
+def load_finetuning_audio_segments(files, device, model_dtype):
+    SEGMENT_SAMPLES = 48000 * 60
     wavs = []
-    files = files[start:end if end != -1 else len(files)]
 
     for file in files:
-        audio_latent = load_audio(file, device, model_dtype)
-        wavs.append(audio_latent)
+        audio = load_audio(file, device, model_dtype)
+        num_segments = audio.shape[-1] // SEGMENT_SAMPLES
+        for i in range(num_segments):
+            segment = audio[..., i * SEGMENT_SAMPLES:(i + 1) * SEGMENT_SAMPLES]
+            wavs.append(segment)
 
-    wavs = torch.stack(wavs).to(device).to(model_dtype)
-    latents = encoder.encode(wavs).to(device).to(model_dtype)
-    return latents
+    return torch.stack(wavs).to(device).to(model_dtype)
+
+
+def encode_audio_segments(encoder, wavs, device, model_dtype):
+    return encoder.encode(wavs).to(device).to(model_dtype)
+
 
 def load_encoder(config_path, checkpoint_path, device, model_dtype):
     from stable_audio_vae import StableAudioVAE
